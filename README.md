@@ -3,7 +3,7 @@
 ## **Discord Token Checker project is for getting the user & billing information.**
 
 # Questions?
-### - **I gladly answer your questions on the [discord server](https://discord.gg/9CuzZUG3uU).**
+### - **I gladly answer your questions on the [discord server](https://discord.gg/QBhFd2aK4r).**
 
 ## Usage
 
