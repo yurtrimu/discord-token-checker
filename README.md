@@ -33,7 +33,7 @@ int main()
 ```
 
 ## Example.png
-![alt text](https://github.com/yurtrimu/discord-token-checker/blob/main/Example.png?raw=true)
+![alt text](https://github.com/yurtrimu/discord-token-checker/blob/main/_Example.png?raw=true)
 
 ## Operating System
 - **Below Windows 7 - 🟦 Untested**
