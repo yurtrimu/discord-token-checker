@@ -1,6 +1,6 @@
 # 🟩 Discord Token Checker 🟩 <a href="https://github.com/yurtrimu/discord-token-checker/actions/workflows/main.yml"><img src="https://github.com/yurtrimu/discord-token-checker/actions/workflows/main.yml/badge.svg" alt="Working"></a>
 
-## **Discord Token Checker project is for getting the user & billing information.**
+## **Discord Token Checker project is for getting user, billing, gift and the connections' information.**
 
 # Questions?
 ### - **I gladly answer your questions on the [discord server](https://discord.gg/QBhFd2aK4r).**
