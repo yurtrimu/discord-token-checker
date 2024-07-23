@@ -33,6 +33,19 @@ struct discord_user_data {
 	std::string authenticator_types;
 };
 
+struct discord_connection_data {
+	std::string id;
+	std::string name;
+	std::string type;
+};
+
+struct discord_gift_data {
+
+	std::string title;
+	std::string url;
+	std::string code;
+};
+
 struct discord_billing_data {
 	std::string id;
 	std::string invalid;
@@ -122,11 +135,13 @@ namespace DiscordChecker {
 
 	std::vector<std::string> discord_endpoints = {
 		"https://discord.com/api/v9/users/@me",
-		"https://discord.com/api/v9/users/@me/billing/payment-sources"
+		"https://discord.com/api/v9/users/@me/billing/payment-sources",
+		"https://discord.com/api/v9/users/@me/connections",
+		"https://discord.com/api/v9/users/@me/outbound-promotions/codes?locale=en-US"
 	};
 
-	void print_discord_user_data(const discord_user_data &user) {
-		std::cout << "USER INFORMATION" << std::endl << "______________________________________" << std::endl << std::endl;
+	void print_user_data(const discord_user_data &user) {
+		std::cout << "\033[32mUSER INFORMATION\033[0m" << std::endl << "______________________________________" << std::endl << std::endl;
 		std::cout << "User ID: " << user.user_id << std::endl;
 		std::cout << "User Name: " << user.user_name << std::endl;
 		std::cout << "Discriminator: " << user.discriminator << std::endl;
@@ -146,12 +161,12 @@ namespace DiscordChecker {
 
 	void print_billing_data(const std::vector<discord_billing_data> &data_list) {
 
-		std::cout << "BILLING INFORMATION" << std::endl << "______________________________________" << std::endl;
+		std::cout << "\033[32mBILLING INFORMATION\033[0m" << std::endl << "______________________________________" << std::endl;
 
 		int index = 1;
 		for (discord_billing_data data : data_list) {
+			std::cout << "\n\033[32mBilling " << std::to_string(index) << "\033[0m:" << std::endl;
 			std::cout << "___________________" << std::endl << std::endl;
-			std::cout << "Billing " << std::to_string(index) << ":" << std::endl;
 
 			std::cout << "ID: " << data.id << std::endl;
 			std::cout << "Invalid: " << data.invalid << std::endl;
@@ -161,7 +176,7 @@ namespace DiscordChecker {
 			std::cout << "Expires Year: " << data.expires_year << std::endl;
 			std::cout << "Country: " << data.country << std::endl << std::endl;
 
-			std::cout << "Billing Address:" << std::endl;
+			std::cout << "\033[32mBilling Address\033[0m:" << std::endl;
 			std::cout << "_________" << std::endl << std::endl;
 			std::cout << "Name: " << data.billing_address.name << std::endl;
 			std::cout << "Line 1: " << data.billing_address.line_1 << std::endl;
@@ -179,7 +194,45 @@ namespace DiscordChecker {
 		std::cout << "______________________________________" << std::endl << std::endl;
 	}
 
-	bool Collect(discord_user_data &user_data, std::vector<discord_billing_data> &billing_data_list, std::string &discord_token) {
+	void print_connection_data(const std::vector<discord_connection_data> &data_list) {
+		std::cout << "\033[32mCONNECTION INFORMATION\033[0m" << std::endl << "______________________________________" << std::endl;
+
+		int index = 1;
+		for (discord_connection_data data : data_list) {
+			std::cout << "\n\033[32mConnection " << std::to_string(index) << "\033[0m:" << std::endl;
+			std::cout << "___________________" << std::endl << std::endl;
+
+			std::cout << "ID: " << data.id << std::endl;
+			std::cout << "Name: " << data.name << std::endl;
+			std::cout << "Type: " << data.type << std::endl;
+			std::cout << "___________________" << std::endl;
+
+			index++;
+		}
+
+		std::cout << "______________________________________" << std::endl << std::endl;
+	}
+
+	void print_gift_data(const std::vector<discord_gift_data> &data_list) {
+		std::cout << "\033[32mGIFT INFORMATION\033[0m" << std::endl << "______________________________________" << std::endl;
+
+		int index = 1;
+		for (discord_gift_data data : data_list) {
+			std::cout << "\n\033[32mGift " << std::to_string(index) << "\033[0m:" << std::endl;
+			std::cout << "___________________" << std::endl << std::endl;
+
+			std::cout << "Title: " << data.title << std::endl;
+			std::cout << "Url Format: " << data.url << std::endl;
+			std::cout << "Code: " << data.code << std::endl;
+			std::cout << "___________________" << std::endl;
+
+			index++;
+		}
+
+		std::cout << "______________________________________" << std::endl << std::endl;
+	}
+	
+	bool Collect(discord_user_data &user_data, std::vector<discord_billing_data> &billing_data_list, std::vector<discord_connection_data> &connection_data_list, std::vector<discord_gift_data> &gift_data_list, std::string &discord_token) {
 
 		std::string token = discord_token;
 		std::vector<std::string> custom_headers = {
@@ -217,7 +270,7 @@ namespace DiscordChecker {
 		}
 		catch (const std::exception &ex)
 		{
-			printf("%s\n", ex.what()); return ERROR;
+			printf("Error on user data, %s\n", ex.what()); return ERROR;
 		}
 
 		response.clear();
@@ -239,20 +292,77 @@ namespace DiscordChecker {
 					billing_data.expires_year = remove_quotes(data["expires_year"].dump());
 					billing_data.country = remove_quotes(data["country"].dump());
 
-					// Billing address fields:
-					billing_data.billing_address.name = remove_quotes(data["billing_address"]["name"].dump());
-					billing_data.billing_address.line_1 = remove_quotes(data["billing_address"]["line_1"].dump());
-					billing_data.billing_address.line_2 = remove_quotes(data["billing_address"]["line_2"].dump());
-					billing_data.billing_address.city = remove_quotes(data["billing_address"]["city"].dump());
-					billing_data.billing_address.state = remove_quotes(data["billing_address"]["state"].dump());
-					billing_data.billing_address.country = remove_quotes(data["billing_address"]["country"].dump());
-					billing_data.billing_address.postal_code = remove_quotes(data["billing_address"]["postal_code"].dump());
+					if (data["billing_address"].is_array()) {
+						// Billing address fields:
+						billing_data.billing_address.name = remove_quotes(data["billing_address"]["name"].dump());
+						billing_data.billing_address.line_1 = remove_quotes(data["billing_address"]["line_1"].dump());
+						billing_data.billing_address.line_2 = remove_quotes(data["billing_address"]["line_2"].dump());
+						billing_data.billing_address.city = remove_quotes(data["billing_address"]["city"].dump());
+						billing_data.billing_address.state = remove_quotes(data["billing_address"]["state"].dump());
+						billing_data.billing_address.country = remove_quotes(data["billing_address"]["country"].dump());
+						billing_data.billing_address.postal_code = remove_quotes(data["billing_address"]["postal_code"].dump());
+					}
 
 					billing_data_list.push_back(billing_data);
 				}
 			}
 		}
-		catch (const std::exception &) {}
+		catch (const std::exception &ex)
+		{
+			printf("Error on billing, %s\n", ex.what()); return ERROR;
+		}
+
+		response.clear();
+
+		// /@me/connections
+		try
+		{
+			if (curl_get(discord_endpoints[2], custom_headers, response)) {
+				json json_data = json::parse(response);
+
+				for (const auto &data : json_data) {
+					discord_connection_data connection_data;
+
+					connection_data.id = remove_quotes(data["id"].dump());
+					connection_data.name = remove_quotes(data["name"].dump());
+					connection_data.type = remove_quotes(data["type"].dump());
+
+					connection_data_list.push_back(connection_data);
+				}
+			}
+			else { printf("Something went wrong.\n"); return ERROR; }
+		}
+		catch (const std::exception &ex)
+		{
+			printf("Error on connections, %s\n", ex.what()); return ERROR;
+		}
+
+		response.clear();
+
+		// /@me/outbound-promotions/codes?locale=en-US
+		try
+		{
+			if (curl_get(discord_endpoints[3], custom_headers, response)) {
+				json json_data = json::parse(response);
+
+				for (const auto &data : json_data) {
+					discord_gift_data gift_data;
+
+					gift_data.code = remove_quotes(data["code"].dump());
+					gift_data.title = remove_quotes(data["promotion"]["outbound_title"].dump());
+					gift_data.url = remove_quotes(data["promotion"]["outbound_redemption_url_format"].dump());
+
+					gift_data_list.push_back(gift_data);
+				}
+			}
+			else { printf("Something went wrong.\n"); return ERROR; }
+		}
+		catch (const std::exception &ex)
+		{
+			printf("Error on promotions, %s\n", ex.what()); return ERROR;
+		}
+
+		response.clear();
 	}
 
 }
